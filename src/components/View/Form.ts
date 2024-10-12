@@ -93,10 +93,6 @@ export class OrderForm extends Form {
             )
         })
         this.orderButtons[0].classList.toggle('button_alt-active');
-        this.submitButton.addEventListener('click', (evt) => {
-            evt.preventDefault();
-            this.events.emit('contactsForm:open')
-        })
     }
 
     changePayment() {
@@ -110,10 +106,5 @@ export class OrderForm extends Form {
 export class ContactsForm extends Form {
     constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
-        
-        this.submitButton.addEventListener('click', (evt) => {
-            evt.preventDefault();
-            this.events.emit('success:open')
-        })
     }
 }

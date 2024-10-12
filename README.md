@@ -246,12 +246,16 @@ export type TContacts = Pick<IInputs, 'email' | 'phone'>;
 - deleteCard(): void - удаляет карточку из контейнера
 - а так-же сеттеры и геттеры для сохранения и получения элементов разметки карточки
 
+#### Класс CardWithImageAndCategory 
+Дочерний класс Card, служит для отображения карточки, которая содержит картинку и категорию
+- constructor(protected container: HTMLTemplateElement, events: IEvents) - В конструктор класса передается DOM элемент темплейта, что позволяет при необходимости формировать карточки разных вариантов верстки и экземпляр класса `EventEmitter`
+
 #### Класс CardInCatalog
-Дочерний класс Card, служит для отображения карточки в каталоге товаров
+Дочерний класс CardWithImageAndCategory , служит для отображения карточки в каталоге товаров
 - constructor(protected container: HTMLTemplateElement, events: IEvents) - В конструктор класса передается DOM элемент темплейта, что позволяет при необходимости формировать карточки разных вариантов верстки и экземпляр класса `EventEmitter`
 
 #### Класс CardPreview
-Дочерний класс Card, служит для отображения модального окна с карточкой
+Дочерний класс CardWithImageAndCategory , служит для отображения модального окна с карточкой
 - constructor(protected container: HTMLTemplateElement, events: IEvents) - В конструктор класса передается DOM элемент темплейта, что позволяет при необходимости формировать карточки разных вариантов верстки и экземпляр класса `EventEmitter`
 
 #### Класс CardInBasket

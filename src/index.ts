@@ -6,14 +6,12 @@ import { EventEmitter } from './components/base/events';
 import { AppApi } from './components/Model/AppApi';
 import { API_URL } from './utils/constants';
 import { Card, CardInCatalog, CardInBasket, CardPreview } from './components/View/Card';
-import { testProductList } from './utils/tempConstants';
 import { Page } from './components/View/Page';
 import { cloneTemplate } from './utils/utils';
 import { Modal } from './components/common/Modal';
 import { Basket } from './components/View/Basket';
 import { Form, OrderForm, ContactsForm } from './components/View/Form';
 import { IInputs } from './types';
-import { Component } from './components/base/Component';
 import { Success } from './components/View/Success';
 
 const events = new EventEmitter();
@@ -43,16 +41,31 @@ const orderForm = new OrderForm(cloneTemplate(orderTemplate), events);
 const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
 const successPreview = new Success(cloneTemplate(successTemplate), events);
 
+const enum Events {
+    dataLoaded = 'data:loaded',
+    cardSelect = 'card:select',
+    productSelect = 'product:select',
+    removeProductSubmit = 'remove-product:submit',
+    productsChanged = 'products:changed',
+    basketOpen = 'basket:open',
+    orderFormOpen = 'orderForm:open',
+    orderSubmit = 'order:submit',
+    contactsSubmit = 'contacts:submit',
+    succesClose = 'success:сlose',
+    orderInput = 'order:input',
+    contactsInput = 'contacts:input',
+}
+
 api.getProductList()
     .then(data => {
         cardsData.items = data.items;
-        events.emit('data:loaded')
+        events.emit(Events.dataLoaded)
     })
     .catch(err => {
         console.log(err);
 })
 
-events.on('data:loaded', () => {
+events.on(Events.dataLoaded, () => {
     const cardArray = cardsData.items.map((card) => {
         const cardInstant = new CardInCatalog(cloneTemplate(cardInCatalogTemplate), events);
         return cardInstant.render(card)
@@ -60,22 +73,22 @@ events.on('data:loaded', () => {
     page.render({ catalog: cardArray});
 })
 
-events.on('card:select', (data: { id: string }) => {
+events.on(Events.cardSelect, (data: { id: string }) => {
     previewModal.content = cardPreview.render(cardsData.getCard(data.id))
     previewModal.open()
 })
 
-events.on('product:select', (data: { id: string }) => {
+events.on(Events.productSelect, (data: { id: string }) => {
     basketData.addProduct(cardsData.getCard(data.id))
     previewModal.close()
 })
 
-events.on('remove-product:submit', (data: { id: string }) => {
+events.on(Events.removeProductSubmit, (data: { id: string }) => {
     basketData.deleteProduct(data.id)
 })
 
 
-events.on('products:changed', () => {
+events.on(Events.productsChanged, () => {
     basketData.сalculateTotalPrice()
     const cardArray = basketData.items.map((card) => {
         const cardInstant = new CardInBasket(cloneTemplate(cardInBasketTemplate), events);
@@ -88,50 +101,56 @@ events.on('products:changed', () => {
     basketPreview.valid = basketData.checkProductsPrice();
 })
 
-events.on('basket:open', () => {
+events.on(Events.basketOpen, () => {
     previewModal.content = basketPreview.render();
     basketPreview.valid = basketData.checkProductsPrice();
     previewModal.open()
 })
 
-events.on('orderForm:open', () => {
+events.on(Events.orderFormOpen, () => {
     previewModal.content = orderForm.render();
     previewModal.open()
 })
 
-events.on('contactsForm:open', () => {
+events.on(Events.orderSubmit, () => {
     previewModal.content = contactsForm.render();
     previewModal.open()
 })
 
-events.on('success:open', () => {
+events.on(Events.contactsSubmit, () => {
     const itemsToOrder = basketData.items.filter((item) => {return item.price !== null});
     orderData.items = itemsToOrder.map((item) => {return item.id});
     orderData.total = basketData.totalPrice;
     successPreview.successDescription = orderData.total;
-    api.orderProducts(orderData.getData());
-    previewModal.content = successPreview.render();
-    previewModal.open();
+    api.orderProducts(orderData.getData())
+        .then((res) => {
+            previewModal.content = successPreview.render();
+            previewModal.open();
 
-    basketData.clearBasket();
-    orderData.clearData();
+            basketData.clearBasket();
+            orderData.clearData();
+        })
+        .catch((err) =>{
+            console.log(err)
+        });
+    
 })
 
-events.on('success:сlose', () => {
+events.on(Events.succesClose, () => {
     previewModal.close()
 })
 
 
-function handleInputEvent(eventType: 'order:input' | 'contacts:input', data: { field: keyof IInputs, value: string }) {
+function handleInputEvent(eventType: Events.orderInput | Events.contactsInput, data: { field: keyof IInputs, value: string }) {
     orderData.setField(data.field, data.value);
 
     let isValid: boolean;
     let form: OrderForm | ContactsForm;
 
-    if (eventType === 'order:input') {
+    if (eventType === Events.orderInput) {
         isValid = orderData.validateOrder();
         form = orderForm;
-    } else if (eventType === 'contacts:input') {
+    } else if (eventType === Events.contactsInput) {
         isValid = orderData.validateContacts();
         form = contactsForm;
     } 
@@ -145,10 +164,10 @@ function handleInputEvent(eventType: 'order:input' | 'contacts:input', data: { f
     }
 }
 
-events.on('order:input', (data: { field: keyof IInputs, value: string }) => {
-    handleInputEvent('order:input', data);
+events.on(Events.orderInput, (data: { field: keyof IInputs, value: string }) => {
+    handleInputEvent(Events.orderInput, data);
 });
 
-events.on('contacts:input', (data: { field: keyof IInputs, value: string }) => {
-    handleInputEvent('contacts:input', data);
+events.on(Events.contactsInput, (data: { field: keyof IInputs, value: string }) => {
+    handleInputEvent(Events.contactsInput, data);
 });

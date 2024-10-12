@@ -9,13 +9,6 @@ export abstract class Card extends Component<IProduct> {
 	protected cardPrice: HTMLElement;
 	protected cardId: string;
 	protected cardData: Partial<IProduct>;
-	protected _categoryColor = <Record<string, string>> {
-		"софт-скил": "soft",
-		"хард-скил": "hard",
-		"кнопка": "button",
-		"дополнительное": "additional",
-		"другое": "other",
-	  }
 	  
 	constructor(protected container: HTMLTemplateElement, events: IEvents) {
 		super(container);
@@ -62,18 +55,21 @@ export abstract class Card extends Component<IProduct> {
 	}
 }
 
-export class CardInCatalog extends Card {
+export class CardWithImageAndCategory extends Card {
 	protected cardCategory: HTMLElement;
 	protected cardImage: HTMLImageElement;
-	protected catalogItemButton: HTMLButtonElement;
+	protected _categoryColor = <Record<string, string>> {
+		"софт-скил": "soft",
+		"хард-скил": "hard",
+		"кнопка": "button",
+		"дополнительное": "additional",
+		"другое": "other",
+	  }
 
 	constructor(template: HTMLTemplateElement, events: IEvents) {
 		super(template, events)
 		this.cardCategory = this.container.querySelector('.card__category');
 		this.cardImage = this.container.querySelector('.card__image');
-
-		this.container.addEventListener('click', () => {
-			this.events.emit('card:select', { id: this.cardId })})
 	}
 
 	set category(category: string) {
@@ -91,30 +87,27 @@ export class CardInCatalog extends Card {
 	}
 }
 
-export class CardPreview extends Card {
-	protected cardCategory: HTMLElement;
-	protected cardImage: HTMLImageElement;
+export class CardInCatalog extends CardWithImageAndCategory {
+	protected catalogItemButton: HTMLButtonElement;
+
+	constructor(template: HTMLTemplateElement, events: IEvents) {
+		super(template, events)
+		this.container.addEventListener('click', () => {
+			this.events.emit('card:select', { id: this.cardId })})
+	}
+}
+
+export class CardPreview extends CardWithImageAndCategory {
 	protected cardDescription: HTMLElement;
 	protected addToBasketButton: HTMLButtonElement;
 
 	constructor(template: HTMLTemplateElement, events: IEvents) {
 		super(template, events)
-		this.cardCategory = this.container.querySelector('.card__category');
-		this.cardImage = this.container.querySelector('.card__image');
 		this.cardDescription = this.container.querySelector('.card__text');
 		this.addToBasketButton = this.container.querySelector('.card__button');
 
 		this.addToBasketButton.addEventListener('click', () => 
 			this.events.emit('product:select', { id: this.cardId }))
-	}
-
-	set category(category: string) {
-		this.cardCategory.textContent = category;
-		this.cardCategory.className = `card__category card__category_${this._categoryColor[category]}`
-	}
-
-	set image(link: string) {
-		this.cardImage.src = `${CDN_URL}${link}`
 	}
 
 	set description(text: string) {
