@@ -91,6 +91,7 @@ export interface IOrder extends IInputs {
   total: number;
   items: string[];
 }
+```
 
 Ответ сервера при совершении заказа 
 ```
